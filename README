@@ -1,0 +1,84 @@
+1. Bash-скрипт для архивирования .conf файлов
+
+Создал скрипт backup_conf.sh для архивирования всех .conf файлов из директории /etc.
+Скрипт принимает путь к директории для сохранения архивов в качестве аргумента.
+Имя архива содержит текущую дату и время в формате YYYYMMDD_HHMMSS.
+Реализована функция автоматического удаления старых архивов - если в директории больше 5 архивов, удаляется самый старый.
+
+Использование скрипта:
+./backup_conf.sh /path/to/backup/directory
+
+Пример:
+./backup_conf.sh /home/user/backups
+
+2. Установка Docker и запуск Nginx
+Установил и запустил docker 
+sudo apt update
+sudo apt install -y docker.io
+sudo systemctl enable --now docker
+
+Запустил контейнер nginx на порту 8080 с текстом "Hello World":
+echo "Hello World" > index.html
+sudo docker run -d -p 8080:80 --name my_nginx -v $(pwd)/index.html:/usr/share/nginx/html/index.html nginx
+
+Проверил работу контейнера:
+sudo docker ps
+curl http://localhost:8080
+
+3. Установка PostgreSQL и создание пользователя
+Установил PostgreSQl 
+sudo apt update
+sudo apt install -y postgresql postgresql-contrib
+sudo systemctl enable --now postgresql
+
+Создал пользователя
+sudo -u postgres psql -c "CREATE USER \"user\" WITH PASSWORD 'password';"
+
+Проверил с помощью команды 
+sudo -u postgres psql -c '\du'
+
+4. Исправление запуска служб (nginx и MongoDB)
+
+Для nginx:
+В файле /lib/systemd/system/nginx.service изменил строку ExecStartPre на:
+ExecStartPre=/usr/sbin/nginx -t -q -g 'daemon on; master_process on;'
+После этого перезапустил systemd и запустил nginx:
+sudo systemctl daemon-reload
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+Для MongoDB:
+Переустановил MongoDB с добавлением официальных репозиториев:
+Добавил GPG ключ MongoDB
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+
+Добавил репозиторий MongoDB
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+
+Обновил пакеты и установил MongoDB
+sudo apt update
+sudo apt install -y mongodb-org
+
+Запустил и включил службу MongoDB
+sudo systemctl start mongod
+sudo systemctl enable mongod
+
+роверил статус службы
+sudo systemctl status mongod
+
+
+5. Форматирование и монтирование диска
+
+Отформатировал второй диск /dev/sdb в файловую систему XFS:
+sudo mkfs.xfs /dev/sdb
+
+Создал точку монтирования и примонтировал диск:
+sudo mkdir -p /mnt/data
+sudo mount /dev/sdb /mnt/data
+
+Сделал монтирование постоянным, добавив запись в /etc/fstab:
+echo "/dev/sdb /mnt/data xfs defaults 0 0" | sudo tee -a /etc/fstab
+
+Проверил монтирование:
+df -h /mnt/data
+
